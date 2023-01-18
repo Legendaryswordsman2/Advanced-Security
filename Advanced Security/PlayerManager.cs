@@ -25,32 +25,33 @@ namespace Advanced_Security
 
         public void OnPlayerConnectedLate(Players.Player player)
         {
+            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+
+            if (worldDataBase == null) return;
+
             // Check if another player is currently connected in the same colony, if they are then return
             for (int i = 0; i < player.ColonyGroups.Count; i++)
             {
+                bool anotherPlayerAlreadyConnectedInSameColony = false;
                 for (int i2 = 0; i2 < player.ColonyGroups[i].Owners.Count; i2++)
                 {
                     if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected && player.ColonyGroups[i].Owners[i2].ID.ID.ID != player.ID.ID.ID)
                     {
                         // Another player is still online in the same colony, so the diffiuclty remains unchanged
-                        Log.Write("Another player is still connected, returning");
-                        return;
+                        Log.Write("Another player is already connected to " + player.ColonyGroups[i].Name);
+                        anotherPlayerAlreadyConnectedInSameColony = true;
                     }
-                }
-            }
 
-            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+                    if (!anotherPlayerAlreadyConnectedInSameColony)
+                    {
+                        if (worldDataBase.TryGetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), out JToken jDifficulty) && jDifficulty != null)
+                        {
+                            string colonyDifficulty = JsonConvert.DeserializeObject<string>(jDifficulty.ToString());
 
-            if (worldDataBase == null) return;
-
-            for (int i = 0; i < player.ColonyGroups.Count; i++)
-            {
-                if (worldDataBase.TryGetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), out JToken jDifficulty) && jDifficulty != null)
-                {
-                    string colonyDifficulty = JsonConvert.DeserializeObject<string>(jDifficulty.ToString());
-
-                    player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
-                    Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
+                            player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
+                            Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
+                        }
+                    }
                 }
             }
         }
