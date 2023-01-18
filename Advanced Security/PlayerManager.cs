@@ -38,19 +38,19 @@ namespace Advanced_Security
                     if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected && player.ColonyGroups[i].Owners[i2].ID.ID.ID != player.ID.ID.ID)
                     {
                         // Another player is still online in the same colony, so the diffiuclty remains unchanged
-                        Log.Write("Another player is already connected to " + player.ColonyGroups[i].Name);
+                        Log.Write("Another player joined who is a part of colony " + player.ColonyGroups[i].Name + " however someone else is already online in that colony so the difficulty will not be changed");
                         anotherPlayerAlreadyConnectedInSameColony = true;
                     }
+                }
 
-                    if (!anotherPlayerAlreadyConnectedInSameColony)
+                if (!anotherPlayerAlreadyConnectedInSameColony)
+                {
+                    if (worldDataBase.TryGetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), out JToken jDifficulty) && jDifficulty != null)
                     {
-                        if (worldDataBase.TryGetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), out JToken jDifficulty) && jDifficulty != null)
-                        {
-                            string colonyDifficulty = JsonConvert.DeserializeObject<string>(jDifficulty.ToString());
+                        string colonyDifficulty = JsonConvert.DeserializeObject<string>(jDifficulty.ToString());
 
-                            player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
-                            Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
-                        }
+                        player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
+                        Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
                     }
                 }
             }
@@ -71,7 +71,8 @@ namespace Advanced_Security
                     if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected)
                     {
                         // Another player is still online in the same colony, so the diffiuclty remains unchanged
-                        Log.Write("Another player is still connected to " + player.ColonyGroups[i].Name);
+                        Log.Write("A player who is a part of " + player.ColonyGroups[i].Name + " has left the game however there is stilll at least one more player online in that colony so the difficulty will not be changed");
+                        //Log.Write("Another player is still connected to " + player.ColonyGroups[i].Name);
                         colonyActive = true;
                     }
                 }
