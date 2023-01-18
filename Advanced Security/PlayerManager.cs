@@ -14,7 +14,7 @@ using Saving;
 
 namespace Advanced_Security
 {
-    public class PlayerManager : IOnPlayerConnectedLate, IOnAssemblyLoaded
+    public class PlayerManager : IOnPlayerConnectedLate, IOnPlayerDisconnected, IOnAssemblyLoaded
     {
         List<ActiveColony> activeColonies;
 
@@ -25,24 +25,32 @@ namespace Advanced_Security
 
         public void OnPlayerConnectedLate(Players.Player player)
         {
+            // Check if another player is currently connected in the same colony, if they are then return
             for (int i = 0; i < player.ColonyGroups.Count; i++)
             {
-                bool foundActiveColony = false;
-                for (int i2 = 0; i2 < activeColonies.Count; i2++)
+                for (int i2 = 0; i2 < player.ColonyGroups[i].Owners.Count; i2++)
                 {
-                    if (player.ColonyGroups[i].ColonyGroupID.ToString() == activeColonies[i].colonyID)
+                    if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected && player.ColonyGroups[i].Owners[i2].ID.ID.ID != player.ID.ID.ID)
                     {
-                        activeColonies[i].onlinePlayers.Add(player.ID.SteamID.ToString());
-                        foundActiveColony = true;
-                        Log.Write("Adding player to existing colony list");
-                        break;
+                        // Another player is still online in the same colony, so the diffiuclty remains unchanged
+                        Log.Write("Another player is still connected, returning");
+                        return;
                     }
                 }
+            }
 
-                if (!foundActiveColony)
+            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+
+            if (worldDataBase == null) return;
+
+            for (int i = 0; i < player.ColonyGroups.Count; i++)
+            {
+                if (worldDataBase.TryGetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), out JToken jDifficulty) && jDifficulty != null)
                 {
-                    Log.Write("Creating new entry");
-                    activeColonies.Add(new ActiveColony(player.ColonyGroups[i].ColonyGroupID.ToString(), player.ID.SteamID.ToString()));
+                    string colonyDifficulty = JsonConvert.DeserializeObject<string>(jDifficulty.ToString());
+
+                    player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
+                    Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
                 }
             }
         }
@@ -52,24 +60,33 @@ namespace Advanced_Security
             WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
 
             if (worldDataBase == null && player.ColonyGroups.Count == 0) return;
-
-
-            string[] colonyDifficulties = new string[player.ColonyGroups.Count];
+            // Check if another player is currently connected in the same colony, if they are then skip that colony
 
             for (int i = 0; i < player.ColonyGroups.Count; i++)
             {
-                colonyDifficulties[i] = player.ColonyGroups[i].DifficultySetting.Key;
-            }
+                bool colonyActive = false;
+                for (int i2 = 0; i2 < player.ColonyGroups[i].Owners.Count; i2++)
+                {
+                    if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected)
+                    {
+                        // Another player is still online in the same colony, so the diffiuclty remains unchanged
+                        Log.Write("Another player is still connected to " + player.ColonyGroups[i].Name);
+                        colonyActive = true;
+                    }
+                }
 
-            string json = JsonConvert.SerializeObject(colonyDifficulties);
+                if (!colonyActive)
+                {
+                    string colonyDifficulty = player.ColonyGroups[i].DifficultySetting.Key;
 
-            worldDataBase.SetWorldKeyValue(player.ID.SteamID.ToString(), json);
+                    string json = JsonConvert.SerializeObject(colonyDifficulty);
 
-            //Log.Write("Player: " + player.Name + " has left, changing their colony difficulty");
-            for (int i = 0; i < player.ColonyGroups.Count; i++)
-            {
-                player.ColonyGroups[i].DifficultySetting.Key = "0";
-                Log.Write("Player leaving, setting the difficulty of colony '"+ player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") to none");
+                    worldDataBase.SetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), json);
+
+                    // Set colony difficulty to none
+                    player.ColonyGroups[i].DifficultySetting.Key = "0";
+                    Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") no longer has any online players, setting difficulty to none");
+                }
             }
         }
     }

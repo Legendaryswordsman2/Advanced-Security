@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Advanced_Security
 {
-    public class ColonyPlayerList
+    public class ActiveColony
     {
         public string colonyID;
 
         public List<string> onlinePlayers = new List<string>();
 
-        public ColonyPlayerList(string _colonyID, string playerID = "")
+        public ActiveColony(string _colonyID, string playerID = "")
         {
             colonyID = _colonyID;
 
