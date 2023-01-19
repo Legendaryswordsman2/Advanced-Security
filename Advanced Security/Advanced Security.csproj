@@ -58,6 +58,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdvancedSecurityInterface.cs" />
     <Compile Include="PlayerManager.cs" />
     <Compile Include="ActiveColony.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

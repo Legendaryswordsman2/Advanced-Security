@@ -38,7 +38,7 @@ namespace Advanced_Security
                     if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected && player.ColonyGroups[i].Owners[i2].ID.ID.ID != player.ID.ID.ID)
                     {
                         // Another player is still online in the same colony, so the diffiuclty remains unchanged
-                        Log.Write("Another player joined who is a part of colony " + player.ColonyGroups[i].Name + " however someone else is already online in that colony so the difficulty will not be changed");
+                        Log.Write("Another player joined who is a part of colony '" + player.ColonyGroups[i].Name + "' however someone else is already online in that colony so the difficulty will not be changed");
                         anotherPlayerAlreadyConnectedInSameColony = true;
                     }
                 }
@@ -71,7 +71,7 @@ namespace Advanced_Security
                     if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected)
                     {
                         // Another player is still online in the same colony, so the diffiuclty remains unchanged
-                        Log.Write("A player who is a part of " + player.ColonyGroups[i].Name + " has left the game however there is stilll at least one more player online in that colony so the difficulty will not be changed");
+                        Log.Write("A player who is a part of '" + player.ColonyGroups[i].Name + "' has left the game however there is stilll at least one more player online in that colony so the difficulty will not be changed");
                         //Log.Write("Another player is still connected to " + player.ColonyGroups[i].Name);
                         colonyActive = true;
                     }
