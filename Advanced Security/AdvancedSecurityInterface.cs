@@ -21,25 +21,18 @@ using System.Xml.Schema;
 namespace Advanced_Security
 {
     [ModLoader.ModManager]
-    public class AdvancedSecurityInterface: IOnConstructColonySettingsUI, IOnPlayerChangedNetworkUIStorage, IOnLoadingColonyGroup, IOnCreatedColonyGroup, IOnQuit, IOnPlayerConnectedEarly
+    public class AdvancedSecurityInterface : IOnConstructColonySettingsUI, IOnPlayerChangedNetworkUIStorage, IOnLoadingColonyGroup, IOnCreatedColonyGroup, IOnQuit, IOnPlayerConnectedEarly, IOnAssemblyLoaded
     {
         bool initialized = false;
 
-        List<ColonyGroupExtraData> colonyGroups = new List<ColonyGroupExtraData>();
+        public static AdvancedSecurityInterface Instance;
 
+        public List<ColonyGroupExtraData> colonyGroups { get; private set; } = new List<ColonyGroupExtraData>();
+
+        [ModLoader.ModCallback("OnAssemblyLoaded_Interface", 10)]
         public void OnAssemblyLoaded(string path)
         {
-            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
-
-            if (worldDataBase == null) return;
-
-            if (worldDataBase.TryGetWorldKeyValue("GMS.ColonyGroupsExtraData", out JToken jcolonyGroups) && jcolonyGroups != null)
-            {
-                colonyGroups = JsonConvert.DeserializeObject<List<ColonyGroupExtraData>>(jcolonyGroups.ToString());
-
-                //player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
-                //Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
-            }
+            Instance = this;
         }
 
         [ModLoader.ModCallback("OnConstructColonySettingsUI", 100)]
@@ -72,14 +65,13 @@ namespace Advanced_Security
         public void OnCreatedColonyGroup(ColonyGroup colony)
         {
             colonyGroups.Add(new ColonyGroupExtraData(colony.ColonyGroupID.ToString()));
-            Log.Write(colony.ColonyGroupID + "  | Colony Loaded");
         }
 
         [ModLoader.ModCallback("OnLoadingColonyGroup", 100)]
         public void OnLoadingColonyGroup(ColonyGroup colony, JObject json)
         {
+            //Log.Write("Loading Colony | " + colony.ColonyGroupID);
             colonyGroups.Add(new ColonyGroupExtraData(colony.ColonyGroupID.ToString()));
-            Log.Write(colony.ColonyGroupID + "  | Colony Loaded");
         }
 
         public void OnPlayerChangedNetworkUIStorage((Players.Player player, JObject context, string menuname) tuple)
