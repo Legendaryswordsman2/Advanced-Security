@@ -3,6 +3,7 @@ using Jobs;
 using ModLoaderInterfaces;
 using NetworkUI;
 using NetworkUI.Items;
+using Newtonsoft.Json.Linq;
 using Pipliz;
 using StarterPacks;
 using System;
@@ -11,123 +12,90 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Saving;
+using Newtonsoft.Json;
+using static Players;
 
 namespace Advanced_Security
 {
     [ModLoader.ModManager]
-    public class AdvancedSecurityInterface : IOnConstructInventoryManageColonyUI
+    public class AdvancedSecurityInterface: IOnConstructColonySettingsUI, IOnPlayerChangedNetworkUIStorage, IOnAssemblyLoaded
     {
+        bool toggleTesting;
+
+        public void OnAssemblyLoaded(string path)
+        {
+            //WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+
+            //if (worldDataBase == null) return;
+
+            //if (worldDataBase.TryGetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), out JToken jDifficulty) && jDifficulty != null)
+            //{
+            //    string colonyDifficulty = JsonConvert.DeserializeObject<string>(jDifficulty.ToString());
+
+            //    player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
+            //    Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
+            //}
+        }
+
         [ModLoader.ModCallback("thing", 100)]
-        public void OnConstructInventoryManageColonyUI(Players.Player player, NetworkMenu menu, (Table left, Table right) tables)
+        public void OnConstructColonySettingsUI(Players.Player player, JObject localStorage, List<IItem> items)
         {
             if (player.ActiveColony == null) return;
 
-            //NetworkMenuManager
-            ButtonCallback disableMobSpawning;
-
-            //Log.Write(tables.right.Rows.Count.ToString());
-
-
-            //menu.Width = 100;
-            //tables.right.BackgroundColor = Color.red;
-            //tables.left.BackgroundColor= Color.blue;
-            //tables.right.Rows.Clear();
-            //menu.TextColor = Color.red;
-            //menu.Items.
-            //menu.Height = 10000;
-
-            //HorizontalRow horizontalRow = (HorizontalRow)menu.Items[0];
-
-            //horizontalRow.InsetTop = 100;
-
-            //horizontalRow.Items[1].Item2.
-
-            //horizontalRow.Items.
-
-            //horizontalRow.Items[0].Item1 = player.ActiveColony;
-
-            //horizontalRow.Items.Remove(horizontalRow.Items[0]);
-
-            //horizontalRow.Items.Remove(horizontalRow.Items[0]);
-
-            //menu.Items.Remove(menu.Items[0]);
-
-            Toggle toggleTest;
-
-            toggleTest = new Toggle("Set diffiuclty to none on leave          ", "test_toggle");
-
-            //Log.Write(toggleTest.ToggleSize.ToString());
-            toggleTest.ToggleSize = 25;
-
-            Label testLabel = new Label("Testy Test");
-            ToggleNoLabel toggleTesties = new ToggleNoLabel("Testty");
-
-            //tables.right.Rows.Add(testLabel);
-            //tables.right.Rows.Add(toggleTesties);
-
-            //tables.right.Rows.Insert(14, toggleTest);
-
             List<(IItem, int)> list = new List<(IItem, int)>(2);
             list.Add((new Label(new LabelData("Set diffiuclty to none on leave"), 30), 247));
-            list.Add((new ToggleNoLabel("colonymanagement.recruitautochanged"), 30));
+            list.Add((new ToggleNoLabel("GMS.SetDifficultyNoneOnLeave"), 30));
 
-            tables.right.Rows.Add(new HorizontalRow(list));
+            items.Add(new HorizontalRow(list));
 
-            disableMobSpawning = new ButtonCallback("GMS.disableZombieSpawn.button", new LabelData("Disable Zombie Spawn On Leave", Color.green));
+            //toggleTesting = true;
 
-            //for (int i = 0; i < menu.Items.Count; i++)
-            //{
-            //    Log.Write(menu.Items[i].ToString());
-            //}
+            localStorage.SetAs("GMS.SetDifficultyNoneOnLeave", (JToken)toggleTesting);
+            //localStorage.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false);
 
+            //localStorage.SetAs("pipliz.colonyname", (JToken)list);
 
-            //Log.Write(menu.Items.Count.ToString());
+            //WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
 
-            //menu.UIParent.parent.
+            //player.ActiveColony.JobFinder.
 
+            //if (worldDataBase == null) return;
 
+            //string json = JsonConvert.SerializeObject(colonyDifficulty);
 
-            //HorizontalRow horizontalRow = (HorizontalRow)menu.Items[0];
+            //worldDataBase.SetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), json);
+        }
 
-            ////Log.Write(horizontalRow.Items.Count.ToString());
-            //for (int i = 0; i < horizontalRow.Items.Count; i++)
-            //{
-            //    Log.Write(horizontalRow.Items[i].ToString());
-            //}
+        //[ModLoader.ModCallback("thing", 100)]
+        //public void OnConstructInventoryManageColonyUI(Players.Player player, NetworkMenu menu, (Table left, Table right) tables)
+        //{
+        //    if (player.ActiveColony == null) return;
 
-            //Log.Write(horizontalRow.Items[1].Item1.ToString());
-            //Log.Write(horizontalRow.Items[1].Item2.ToString());
+        //    //NetworkMenuManager
 
-            //horizontalRow.Items.Reverse();
+        //    ToggleNoLabel autoSetDifficulty = new ToggleNoLabel("GMS.SetDifficultyNoneOnLeave");
 
-            //CommandToolManager.GenerateTwoColumnCenteredRow(menu,horizontalRow);
+        //    //autoSetDifficulty.Equals(true);
+        //    //autoSetDifficulty.
 
-            //horizontalRow.Items.Add(new (IItem, int))
+        //    List<(IItem, int)> list = new List<(IItem, int)>(2);
+        //    list.Add((new Label(new LabelData("Set diffiuclty to none on leave"), 30), 247));
+        //    list.Add((autoSetDifficulty, 30));
 
-            //Log.Write(tables.right.Rows[1].ToString() + "       rehjre5jt");
+        //    list[1].Item1.Equals(true);
 
+        //    tables.right.Rows.Add(new HorizontalRow(list));
 
-            //menu.Items.Add(toggleTest);
+            
 
-            //tables.right.Rows.Add(toggleTest);
+        //    //disableMobSpawning = new ButtonCallback("GMS.disableZombieSpawn.button", new LabelData("Disable Zombie Spawn On Leave", Color.green));
+        //}
 
-            //tables.right.Rows.Reverse();
-
-            //menu.Items.Reverse();
-
-            //menu.Items.Sort();
-            //menu.Items.Clear();
-            //disableMobSpawning.Width = 20;
-            //tables.right.BackgroundColor = Color.white;
-            //tables.right.Rows.Add(toggleTest);
-            //menu.Items.Add(toggleTest);
-            //menu.Items.Insert(0, toggleTest);
-            //tables.right.a
-            //tables.right.Rows.Reverse();
-            //tables.right.Rows.Add(disableMobSpawning);
-            //tables.right.Rows.Sort();
-
-            //tables.right.Height = 0;
+        public void OnPlayerChangedNetworkUIStorage((Players.Player player, JObject context, string menuname) tuple)
+        {
+            Log.Write(tuple.context.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false).ToString());
+            toggleTesting = tuple.context.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false);
         }
     }
 }
