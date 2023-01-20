@@ -59,8 +59,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvancedSecurityInterface.cs" />
+    <Compile Include="ColonyGroupExtraData.cs" />
     <Compile Include="PlayerManager.cs" />
-    <Compile Include="ActiveColony.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

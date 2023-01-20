@@ -15,30 +15,34 @@ using UnityEngine;
 using Saving;
 using Newtonsoft.Json;
 using static Players;
+using Steamworks;
+using System.Xml.Schema;
 
 namespace Advanced_Security
 {
     [ModLoader.ModManager]
-    public class AdvancedSecurityInterface: IOnConstructColonySettingsUI, IOnPlayerChangedNetworkUIStorage, IOnAssemblyLoaded
+    public class AdvancedSecurityInterface: IOnConstructColonySettingsUI, IOnPlayerChangedNetworkUIStorage, IOnLoadingColonyGroup, IOnCreatedColonyGroup, IOnQuit, IOnPlayerConnectedEarly
     {
-        bool toggleTesting;
+        bool initialized = false;
+
+        List<ColonyGroupExtraData> colonyGroups = new List<ColonyGroupExtraData>();
 
         public void OnAssemblyLoaded(string path)
         {
-            //WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
 
-            //if (worldDataBase == null) return;
+            if (worldDataBase == null) return;
 
-            //if (worldDataBase.TryGetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), out JToken jDifficulty) && jDifficulty != null)
-            //{
-            //    string colonyDifficulty = JsonConvert.DeserializeObject<string>(jDifficulty.ToString());
+            if (worldDataBase.TryGetWorldKeyValue("GMS.ColonyGroupsExtraData", out JToken jcolonyGroups) && jcolonyGroups != null)
+            {
+                colonyGroups = JsonConvert.DeserializeObject<List<ColonyGroupExtraData>>(jcolonyGroups.ToString());
 
-            //    player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
-            //    Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
-            //}
+                //player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
+                //Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
+            }
         }
 
-        [ModLoader.ModCallback("thing", 100)]
+        [ModLoader.ModCallback("OnConstructColonySettingsUI", 100)]
         public void OnConstructColonySettingsUI(Players.Player player, JObject localStorage, List<IItem> items)
         {
             if (player.ActiveColony == null) return;
@@ -51,51 +55,71 @@ namespace Advanced_Security
 
             //toggleTesting = true;
 
-            localStorage.SetAs("GMS.SetDifficultyNoneOnLeave", (JToken)toggleTesting);
+            //player.save
+            //Colony colony = ServerManager.ColonyTracker.Get(new ColonyID(localStorage.GetAsOrDefault("colonyID", 0)));
+
+            //colony.ColonyGroup.
+
+            //Log.Write(colony.Name + " | rehir");
+            ColonyGroupExtraData colonyGroupExtraData = colonyGroups.Where(colonyGroup => colonyGroup.colonyGroupID == player.ActiveColonyGroup.ColonyGroupID.ToString()).ToList()[0];
+
+            localStorage.SetAs("GMS.SetDifficultyNoneOnLeave", (JToken)colonyGroupExtraData.autoSetDifficulty);
             //localStorage.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false);
 
             //localStorage.SetAs("pipliz.colonyname", (JToken)list);
-
-            //WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
-
-            //player.ActiveColony.JobFinder.
-
-            //if (worldDataBase == null) return;
-
-            //string json = JsonConvert.SerializeObject(colonyDifficulty);
-
-            //worldDataBase.SetWorldKeyValue(player.ColonyGroups[i].ColonyGroupID.ToString(), json);
         }
 
-        //[ModLoader.ModCallback("thing", 100)]
-        //public void OnConstructInventoryManageColonyUI(Players.Player player, NetworkMenu menu, (Table left, Table right) tables)
-        //{
-        //    if (player.ActiveColony == null) return;
+        public void OnCreatedColonyGroup(ColonyGroup colony)
+        {
+            colonyGroups.Add(new ColonyGroupExtraData(colony.ColonyGroupID.ToString()));
+            Log.Write(colony.ColonyGroupID + "  | Colony Loaded");
+        }
 
-        //    //NetworkMenuManager
-
-        //    ToggleNoLabel autoSetDifficulty = new ToggleNoLabel("GMS.SetDifficultyNoneOnLeave");
-
-        //    //autoSetDifficulty.Equals(true);
-        //    //autoSetDifficulty.
-
-        //    List<(IItem, int)> list = new List<(IItem, int)>(2);
-        //    list.Add((new Label(new LabelData("Set diffiuclty to none on leave"), 30), 247));
-        //    list.Add((autoSetDifficulty, 30));
-
-        //    list[1].Item1.Equals(true);
-
-        //    tables.right.Rows.Add(new HorizontalRow(list));
-
-            
-
-        //    //disableMobSpawning = new ButtonCallback("GMS.disableZombieSpawn.button", new LabelData("Disable Zombie Spawn On Leave", Color.green));
-        //}
+        [ModLoader.ModCallback("OnLoadingColonyGroup", 100)]
+        public void OnLoadingColonyGroup(ColonyGroup colony, JObject json)
+        {
+            colonyGroups.Add(new ColonyGroupExtraData(colony.ColonyGroupID.ToString()));
+            Log.Write(colony.ColonyGroupID + "  | Colony Loaded");
+        }
 
         public void OnPlayerChangedNetworkUIStorage((Players.Player player, JObject context, string menuname) tuple)
         {
-            Log.Write(tuple.context.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false).ToString());
-            toggleTesting = tuple.context.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false);
+            //Log.Write(tuple.context.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false).ToString());
+            ColonyGroupExtraData colonyGroupExtraData = colonyGroups.Where(colonyGroup => colonyGroup.colonyGroupID == tuple.player.ActiveColonyGroup.ColonyGroupID.ToString()).ToList()[0];
+            colonyGroupExtraData.autoSetDifficulty = tuple.context.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false);
+
+            //WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+
+            //if (worldDataBase == null) return;
+
+            //string json = JsonConvert.SerializeObject(autoSetDifficulty);
+
+            //worldDataBase.SetWorldKeyValue("GMS.autoSetDifficulty." + tuple.player.ActiveColonyGroup.ColonyGroupID, json);
+        }
+
+        public void OnPlayerConnectedEarly(Player player)
+        {
+            if (initialized) return;
+
+            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+
+            if (worldDataBase == null) return;
+
+            if (worldDataBase.TryGetWorldKeyValue("GMS.ColonyGroupsExtraData", out JToken jcolonyGroups) && jcolonyGroups != null)
+                colonyGroups = JsonConvert.DeserializeObject<List<ColonyGroupExtraData>>(jcolonyGroups.ToString());
+
+            initialized = true;
+        }
+
+        public void OnQuit()
+        {
+            WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
+
+            if (worldDataBase == null) return;
+
+            string json = JsonConvert.SerializeObject(colonyGroups);
+
+            worldDataBase.SetWorldKeyValue("GMS.ColonyGroupsExtraData", json);
         }
     }
 }

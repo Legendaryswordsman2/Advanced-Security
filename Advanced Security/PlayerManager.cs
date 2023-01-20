@@ -14,14 +14,8 @@ using Saving;
 
 namespace Advanced_Security
 {
-    public class PlayerManager : IOnPlayerConnectedLate, IOnPlayerDisconnected, IOnAssemblyLoaded
+    public class PlayerManager : IOnPlayerConnectedLate, IOnPlayerDisconnected
     {
-        List<ActiveColony> activeColonies;
-
-        public void OnAssemblyLoaded(string path)
-        {
-            activeColonies = new List<ActiveColony>();
-        }
 
         public void OnPlayerConnectedLate(Players.Player player)
         {
