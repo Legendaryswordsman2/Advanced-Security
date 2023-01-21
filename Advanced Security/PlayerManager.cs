@@ -14,7 +14,7 @@ using Saving;
 
 namespace Advanced_Security
 {
-    public class PlayerManager : IOnPlayerConnectedLate, IOnPlayerDisconnected, IOnAssemblyLoaded
+    public class PlayerManager : IOnPlayerConnectedEarly, IOnPlayerDisconnected, IOnAssemblyLoaded
     {
         AdvancedSecurityInterface asInterface;
 
@@ -24,7 +24,8 @@ namespace Advanced_Security
             asInterface = AdvancedSecurityInterface.Instance;
         }
 
-        public void OnPlayerConnectedLate(Players.Player player)
+        //[ModLoader.ModCallback("OnPlayerConnectedEarly", -100)]
+        public void OnPlayerConnectedEarly(Players.Player player)
         {
             WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
 
@@ -41,7 +42,7 @@ namespace Advanced_Security
                         if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected && player.ColonyGroups[i].Owners[i2].ID.ID.ID != player.ID.ID.ID)
                         {
                             // Another player is still online in the same colony, so the diffiuclty remains unchanged
-                            Log.Write("Another player joined who is a part of colony '" + player.ColonyGroups[i].Name + "' however someone else is already online in that colony so the difficulty will not be changed");
+                            //Log.Write("Another player joined who is a part of colony '" + player.ColonyGroups[i].Name + "' however someone else is already online in that colony so the difficulty will not be changed");
                             anotherPlayerAlreadyConnectedInSameColony = true;
                         }
                     }
@@ -53,11 +54,20 @@ namespace Advanced_Security
                             string colonyDifficulty = JsonConvert.DeserializeObject<string>(jDifficulty.ToString());
 
                             player.ColonyGroups[i].DifficultySetting.Key = colonyDifficulty;
-                            Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") is now active, setting difficulty to index " + colonyDifficulty);
+                            //player.ColonyGroups[i].
+                            Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.ColonyGroups[i].Owners[0].Name + ") is now active, setting difficulty to index " + colonyDifficulty);
                         }
                     }
                 }
             }
+
+            player.ActiveColonyGroup?.SendThreatLevelsToActiveOwners();
+
+            //if(player.ActiveColony != null)
+            //{
+            //    player.ActiveColony.Update();
+            //    player.UpdateScore();
+            //}
         }
 
         public void OnPlayerDisconnected(Players.Player player)
@@ -78,7 +88,7 @@ namespace Advanced_Security
                         if (player.ColonyGroups[i].Owners[i2].ConnectionState == Players.EConnectionState.Connected)
                         {
                             // Another player is still online in the same colony, so the diffiuclty remains unchanged
-                            Log.Write("A player who is a part of '" + player.ColonyGroups[i].Name + "' has left the game however there is stilll at least one more player online in that colony so the difficulty will not be changed");
+                            //Log.Write("A player who is a part of '" + player.ColonyGroups[i].Name + "' has left the game however there is stilll at least one more player online in that colony so the difficulty will not be changed");
                             colonyActive = true;
                         }
                     }
@@ -93,7 +103,7 @@ namespace Advanced_Security
 
                         // Set colony difficulty to none
                         player.ColonyGroups[i].DifficultySetting.Key = "0";
-                        Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.Name + ") no longer has any online players, setting difficulty to none");
+                        Log.Write("Colony '" + player.ColonyGroups[i].Name + "' (Owned by: " + player.ColonyGroups[i].Owners[0].Name + ") no longer has any online players, setting difficulty to none");
                     }
                 }
             }

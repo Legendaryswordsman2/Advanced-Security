@@ -15,13 +15,16 @@ using UnityEngine;
 using Saving;
 using Newtonsoft.Json;
 using static Players;
-using Steamworks;
+//using Steamworks;
 using System.Xml.Schema;
+using colonyserver.Assets.UIGeneration;
+using Shared.Networking;
+using System.Xml;
 
 namespace Advanced_Security
 {
     [ModLoader.ModManager]
-    public class AdvancedSecurityInterface : IOnConstructColonySettingsUI, IOnPlayerChangedNetworkUIStorage, IOnLoadingColonyGroup, IOnCreatedColonyGroup, IOnQuit, IOnPlayerConnectedEarly, IOnAssemblyLoaded
+    public class AdvancedSecurityInterface : IOnConstructColonySettingsUI, IOnPlayerChangedNetworkUIStorage, IOnLoadingColonyGroup, IOnCreatedColonyGroup, IOnQuit, IOnPlayerConnectedEarly, IOnAssemblyLoaded//, IOnRecalculateThreatLevel
     {
         bool initialized = false;
 
@@ -33,6 +36,14 @@ namespace Advanced_Security
         public void OnAssemblyLoaded(string path)
         {
             Instance = this;
+
+            //NetworkMenuManager
+            //ServerManager
+
+
+            //AlarmbellTracker alarmbellTracker= new AlarmbellTracker();
+
+            //alarmbellTracker.
         }
 
         [ModLoader.ModCallback("OnConstructColonySettingsUI", 100)]
@@ -41,25 +52,13 @@ namespace Advanced_Security
             if (player.ActiveColony == null) return;
 
             List<(IItem, int)> list = new List<(IItem, int)>(2);
-            list.Add((new Label(new LabelData("Set diffiuclty to none on leave"), 30), 247));
+            list.Add((new Label(new LabelData("Auto set difficulty on join/leave"), 30), 247));
             list.Add((new ToggleNoLabel("GMS.SetDifficultyNoneOnLeave"), 30));
 
             items.Add(new HorizontalRow(list));
-
-            //toggleTesting = true;
-
-            //player.save
-            //Colony colony = ServerManager.ColonyTracker.Get(new ColonyID(localStorage.GetAsOrDefault("colonyID", 0)));
-
-            //colony.ColonyGroup.
-
-            //Log.Write(colony.Name + " | rehir");
             ColonyGroupExtraData colonyGroupExtraData = colonyGroups.Where(colonyGroup => colonyGroup.colonyGroupID == player.ActiveColonyGroup.ColonyGroupID.ToString()).ToList()[0];
 
             localStorage.SetAs("GMS.SetDifficultyNoneOnLeave", (JToken)colonyGroupExtraData.autoSetDifficulty);
-            //localStorage.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false);
-
-            //localStorage.SetAs("pipliz.colonyname", (JToken)list);
         }
 
         public void OnCreatedColonyGroup(ColonyGroup colony)
@@ -76,6 +75,7 @@ namespace Advanced_Security
 
         public void OnPlayerChangedNetworkUIStorage((Players.Player player, JObject context, string menuname) tuple)
         {
+
             //Log.Write(tuple.context.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false).ToString());
             ColonyGroupExtraData colonyGroupExtraData = colonyGroups.Where(colonyGroup => colonyGroup.colonyGroupID == tuple.player.ActiveColonyGroup.ColonyGroupID.ToString()).ToList()[0];
             colonyGroupExtraData.autoSetDifficulty = tuple.context.GetAsOrDefault("GMS.SetDifficultyNoneOnLeave", false);
@@ -89,7 +89,8 @@ namespace Advanced_Security
             //worldDataBase.SetWorldKeyValue("GMS.autoSetDifficulty." + tuple.player.ActiveColonyGroup.ColonyGroupID, json);
         }
 
-        public void OnPlayerConnectedEarly(Player player)
+        [ModLoader.ModCallback("OnPlayerConnectedEarly", -100)]
+        public void OnPlayerConnectedEarly(Player player) // Closest thing I could get to a start method
         {
             if (initialized) return;
 
@@ -112,6 +113,11 @@ namespace Advanced_Security
             string json = JsonConvert.SerializeObject(colonyGroups);
 
             worldDataBase.SetWorldKeyValue("GMS.ColonyGroupsExtraData", json);
+        }
+
+        public void OnRecalculateThreatLevel(ColonyGroup colony)
+        {
+            //colony.SendThreatLevelsToActiveOwners();
         }
     }
 }

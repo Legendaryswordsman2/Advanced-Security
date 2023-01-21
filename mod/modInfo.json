@@ -1,14 +1,12 @@
 [
 	{
 		"name": "Advanced Security",
-		"version": "0.1.0.0",
+		"version": "0.1.0.1",
 		"enableddefault": true,
 		"description": "",
-		"dllpath":  "./Advanced Security/bin/Debug/Advanced Security.dll",
+		"dllpath":  "./dll/Advanced Security.dll",
 		"compatibleversions": [
 			"0.9.0"
-		],
-		"jsonFiles": [
 		]
 	}
 ]
