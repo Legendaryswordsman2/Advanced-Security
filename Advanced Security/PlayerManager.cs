@@ -24,7 +24,7 @@ namespace Advanced_Security
             asInterface = AdvancedSecurityInterface.Instance;
         }
 
-        //[ModLoader.ModCallback("OnPlayerConnectedEarly", -100)]
+        [ModLoader.ModCallback("GMSOnPlayerConnectedEarly", 90000)]
         public void OnPlayerConnectedEarly(Players.Player player)
         {
             WorldDB worldDataBase = ServerManager.SaveManager.WorldDataBase;
@@ -61,7 +61,7 @@ namespace Advanced_Security
                 }
             }
 
-            player.ActiveColonyGroup?.SendThreatLevelsToActiveOwners();
+            player.ActiveColonyGroup?.RecalculateThreat();
 
             //if(player.ActiveColony != null)
             //{
